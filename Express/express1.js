@@ -1,19 +1,27 @@
-const express = require("express")
-const app = express()
+const express = require("express");
+const app = express();
 
-app.use(function(err, req, res, next) {
-    console.error(err.stack);
-    res.status(500).send("this is from error middleware" + err.message);  // This is called when there is an error in code code
-});
+// Middleware to log the URL of each request
 app.use(function(req, res, next) {
-    console.log("This is similar to constructor in java , it is called first"); // First this is called whenever a route is called
+    console.log(req.url);
+    next(); // Pass control to the next middleware/route
 });
 
-app.get("/hello",function(req,res){
-    res.send("Hello");
-});
-app.get("/",function(req,res,next){
-    res.send("hello");
+app.use(express.json());
+app.use(express.urlencoded({extended:true})); //these two lines converts json formatted data from front to here converted and readable
+
+// Error-handling middleware
+app.use(function(err, req, res, next) {
+    console.log(err.message);
+    res.send("ERROR LOADING PAGE");
 });
 
-app.listen(2000);
+// Route handler
+app.get("/", function(req, res,next) {
+   res.send("helllo")
+});
+
+// Start the server
+app.listen(2800, () => {
+    console.log("Server is running on http://localhost:2800");
+});
