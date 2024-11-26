@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        body{
+            font-family: Arial, Helvetica, sans-serif;
+        }
+        th, td {
+            border: 1px solid white;
+            padding: 5px;
+            width: auto;
+            overflow: hidden;
+        }
+        table {
+            width: 100%;
+            table-layout: fixed;
+            padding-right: 20px;
+        }
+        a{
+            color: blue;
+            padding: 3px;
+            text-decoration: none;
+        }
+        td a{
+            color: red;
+            margin: 3px;
+            text-decoration: none;
+            font-weight: 700;
+        }
+        button{
+            background-color: red;
+            margin: 5px;
+            color: aliceblue;
+            font-family: Arial, Helvetica, sans-serif;
+            font-weight: 200;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div>
+        <a href="/" style="margin-bottom: 10px;padding:10px;">Back to Home</a>
+        <table style="margin:20px;border: 1px solid pink; background-color: black; color: white; font-family: Arial, Helvetica, sans-serif">
+            <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Roll No</th>
+                <th>Options</th>
+            </tr>
+            <% if (userlist.length === 0) { %>
+                <tr>
+                    <td colspan="3">No users found.</td>
+                </tr>
+            <% } else { %>
+                <% userlist.forEach(function(user) { %>
+                    <tr>
+                        <td><%= user.name %></td>
+                        <td><%= user.email %></td>
+                        <td><%= user.rollno %></td>
+                        <td><a href="/editUser/<%= user._id %>">Edit</a><a href="/deleteUser/<%= user._id %>">Delete</a></td>
+                    </tr>
+                <% }); %>
+            <% } %>
+        </table>
+    </div>
+</body>
+</html>

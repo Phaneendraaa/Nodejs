@@ -1,28 +1,60 @@
 const express = require("express")
-const app = express()
+
+const app = express();
+const path = require("path");
+app.set("view engine","ejs");
+const userModel = require("./models/user");
 app.use(express.json());
 app.use(express.urlencoded({extended:true}));
-const userModel = require("./usermodel");
-const path = require("path");
+app.use(express.static(path.join(__dirname,"public")));
 
-app.get("/",function(req,res){
-    res.send("hello");
+
+app.get("/",(req,res)=>{
+    res.render("index");
+})
+
+app.post("/SignupForm", async (req,res)=>{
+    const {name,email,rollno} = req.body;
+        const createdUser = await userModel.create({
+            name,
+            email,
+            rollno
+        });
+        res.redirect("/UserList");
 });
-app.get("/create", async function(req,res){
-        const [name,email,age] = ["phaneendra","naga@gmail.com",25];
-        let createdUser = await userModel.create({name:name,email:email,age:age});
-        res.send(createdUser);
-});
-app.get("/read", async function (req,res) {
-        let userList = await userModel.find({name:"phanibabu"});
-        res.send(userList);
+app.get("/UserList", async (req,res)=>{
+    const userlist = await userModel.find();
+    res.render("users",{userlist:userlist});
 })
-app.get("/update",async function (req,res) {
-    let updatedList = await userModel.findOneAndUpdate({name:"naga"},{name:"phanibabu"});
-    res.send(updatedList);
+
+app.get("/deleteUser/:userid", async function(req,res){
+        const userid = req.params.userid;
+        let deletedUser = await userModel.findOneAndDelete({_id:userid});
+        res.redirect("/UserList");
 })
-app.get("/delete", async function(req,res){
-    let deletedList = await userModel.findOneAndDelete({name:"phaneendra"});
-    res.send(deletedList);
+app.get("/editUser/:userid", async function(req,res){
+    const userid = req.params.userid;
+    let details = await userModel.findOne({_id:userid});
+
+    res.render("editUser",{details:details});
 })
-app.listen(1500);
+app.post("/update/:useri", async function(req,res) {
+    await userModel.findOneAndUpdate({_id:req.params.useri},{name:req.body.name,email:req.body.email,rollno:req.body.rollno});
+    res.redirect("/UserList");
+})
+
+
+
+
+
+
+
+
+
+
+
+
+
+app.listen(3000,()=>{
+    console.log("server running on http:/localhost:3000");
+})
