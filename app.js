@@ -1,60 +1,56 @@
-const express = require("express")
+let express = require('express'); 
+let cookieParser = require('cookie-parser'); 
+const jwt = require("jsonwebtoken");
+let app = express() 
+const bcrypt = require("bcrypt");
+app.use(cookieParser()); 
+  
+  
+//basic route for homepage 
+app.get('/', (req, res)=>{ 
+        res.cookie("name","naga");
+        res.send("cookie set");
+}); 
+  
 
-const app = express();
-const path = require("path");
-app.set("view engine","ejs");
-const userModel = require("./models/user");
-app.use(express.json());
-app.use(express.urlencoded({extended:true}));
-app.use(express.static(path.join(__dirname,"public")));
-
-
-app.get("/",(req,res)=>{
-    res.render("index");
-})
-
-app.post("/SignupForm", async (req,res)=>{
-    const {name,email,rollno} = req.body;
-        const createdUser = await userModel.create({
-            name,
-            email,
-            rollno
-        });
-        res.redirect("/UserList");
+//Iterate users data from cookie 
+app.get('/getuser', (req, res) => {
+        res.send(req.cookies);
+        console.log(req.cookies);
 });
-app.get("/UserList", async (req,res)=>{
-    const userlist = await userModel.find();
-    res.render("users",{userlist:userlist});
+
+app.get("/bcrypting",function(req,res){
+    let password = "password123";
+    
+    bcrypt.hash(password, 10 , function(err, hash) {
+        
+        console.log("encrypted pass is ",hash);
+        bcrypt.compare(password, hash).then(function(result) { //immediate decyrption
+            console.log(result);
+        });
+    });
+    bcrypt.compare(password,"$2b$10$9nVEe4nmMD29Nu4pdPFEquIIfTJNHfvKYFf7DIRfVZwW2t0MR3xG6").then(function(result) {
+        console.log(result);   // original way of decrypting...the hash hastobe saved in db to retreive
+    });
+   
+    res.send("he;l");
 })
 
-app.get("/deleteUser/:userid", async function(req,res){
-        const userid = req.params.userid;
-        let deletedUser = await userModel.findOneAndDelete({_id:userid});
-        res.redirect("/UserList");
+app.get("/jwt",function(req,res){
+    const token = jwt.sign({username:"phani"},"secretkey");
+    console.log(token);
+    res.cookie("token",token);
+    res.send("jwt is set");
 })
-app.get("/editUser/:userid", async function(req,res){
-    const userid = req.params.userid;
-    let details = await userModel.findOne({_id:userid});
-
-    res.render("editUser",{details:details});
+app.get("/jwtTokenRead",function(req,res){
+    const token = req.cookies.token;
+    const decoded = jwt.verify(token, "secretkey"); // Use the same secret key used for signing
+    console.log("Decoded JWT data:", decoded); // Log the decoded data
+    res.send(decoded);
 })
-app.post("/update/:useri", async function(req,res) {
-    await userModel.findOneAndUpdate({_id:req.params.useri},{name:req.body.name,email:req.body.email,rollno:req.body.rollno});
-    res.redirect("/UserList");
-})
-
-
-
-
-
-
-
-
-
-
-
-
-
-app.listen(3000,()=>{
-    console.log("server running on http:/localhost:3000");
-})
+//server listens to port 3000 
+app.listen(3000, (err)=>{ 
+if(err) 
+throw err; 
+console.log('listening on port 3000'); 
+}); 
