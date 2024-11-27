@@ -1,56 +1,70 @@
-let express = require('express'); 
-let cookieParser = require('cookie-parser'); 
+const express = require("express");
+const app = express();
+const path = require("path");
+const cookieparser = require("cookie-parser");
 const jwt = require("jsonwebtoken");
-let app = express() 
+const userModel = require("./models/user");
 const bcrypt = require("bcrypt");
-app.use(cookieParser()); 
-  
-  
-//basic route for homepage 
-app.get('/', (req, res)=>{ 
-        res.cookie("name","naga");
-        res.send("cookie set");
-}); 
-  
+app.use(cookieparser());
+app.use(express.json());
+app.use(express.urlencoded({extended:true}));
+app.use(express.static(path.join(__dirname,"public")));
+app.set("view engine","ejs");
 
-//Iterate users data from cookie 
-app.get('/getuser', (req, res) => {
-        res.send(req.cookies);
-        console.log(req.cookies);
-});
-
-app.get("/bcrypting",function(req,res){
-    let password = "password123";
+app.get("/",function(req,res){
     
-    bcrypt.hash(password, 10 , function(err, hash) {
+    res.render("signup");
+})
+app.get("/home",function(re,res){
+    res.send("This is Home Page");
+})
+app.post("/signup", async function(req,res){
+
+        const {username,email,password} = req.body;
+        const hashedPassword = await bcrypt.hash(password, 10);
         
-        console.log("encrypted pass is ",hash);
-        bcrypt.compare(password, hash).then(function(result) { //immediate decyrption
-            console.log(result);
-        });
+        const NewUser = await userModel.create({username,email,password:hashedPassword});
+        const token = jwt.sign({email:NewUser.email,password:NewUser.password},"secretkey");
+            res.cookie("token",token);
+            res.redirect("/home");
+        
+
+})
+app.get("/login",function(req,res){
+    res.render("login");
+})
+app.post("/loginr", async function(req,res) {
+
+    const {email,password} = req.body;
+    const user = await userModel.findOne({email});
+    if(!user) {
+        res.status(401).send("Invalid email");
+    }
+    bcrypt.compare(password,user.password,function(err,result){
+        if(result){
+            const token = jwt.sign({email:user.email,password:user.password},"secretkey");
+            res.cookie("token",token);
+            res.redirect("/home");
+        }
+        else{
+            res.send("invalid pass");
+        }
     });
-    bcrypt.compare(password,"$2b$10$9nVEe4nmMD29Nu4pdPFEquIIfTJNHfvKYFf7DIRfVZwW2t0MR3xG6").then(function(result) {
-        console.log(result);   // original way of decrypting...the hash hastobe saved in db to retreive
-    });
-   
-    res.send("he;l");
+    
+})
+app.get("/cookiecheck",function(req,res){
+    const token = req.cookies.token;
+    res.send(`cookie is ${token}`);
+})
+app.get("/logout",function(req,res){
+    res.cookie("token","");
+    res.send("loggedout")
 })
 
-app.get("/jwt",function(req,res){
-    const token = jwt.sign({username:"phani"},"secretkey");
-    console.log(token);
-    res.cookie("token",token);
-    res.send("jwt is set");
-})
-app.get("/jwtTokenRead",function(req,res){
-    const token = req.cookies.token;
-    const decoded = jwt.verify(token, "secretkey"); // Use the same secret key used for signing
-    console.log("Decoded JWT data:", decoded); // Log the decoded data
-    res.send(decoded);
-})
-//server listens to port 3000 
-app.listen(3000, (err)=>{ 
-if(err) 
-throw err; 
-console.log('listening on port 3000'); 
-}); 
+
+
+
+
+
+
+app.listen(3000);
