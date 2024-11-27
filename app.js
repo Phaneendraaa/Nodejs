@@ -1,70 +1,40 @@
 const express = require("express");
 const app = express();
-const path = require("path");
-const cookieparser = require("cookie-parser");
-const jwt = require("jsonwebtoken");
-const userModel = require("./models/user");
-const bcrypt = require("bcrypt");
-app.use(cookieparser());
+app.listen(3000);
 app.use(express.json());
 app.use(express.urlencoded({extended:true}));
-app.use(express.static(path.join(__dirname,"public")));
-app.set("view engine","ejs");
-
+const userModel = require("./models/user");
+const postModel = require("./models/post");
+const cookieparser = require("cookie-parser");
+app.use(cookieparser());
 app.get("/",function(req,res){
+    res.send("Hello World");
+})
+
+app.get("/createuser", async function(req,res){
+
+    let newuser = await userModel.create({username:"na",email:"nagawork@gmail.com"});
+    res.cookie("currentuser",newuser._id);
+    res.send(newuser);
+});
+
+app.get("/createpost", async function(req,res){
+        const curruser = req.cookies.currentuser;
+
+        const newpost = await postModel.create({postdata:"This   a post",user:curruser});
+        await userModel.findOneAndUpdate({_id:newpost.user},{$push:{posts: newpost._id}}); //another method is by using .save() browse for info
+        res.send(newpost);
+
+})
+app.get("/readuser", async function(req,res){
     
-    res.render("signup");
-})
-app.get("/home",function(re,res){
-    res.send("This is Home Page");
-})
-app.post("/signup", async function(req,res){
-
-        const {username,email,password} = req.body;
-        const hashedPassword = await bcrypt.hash(password, 10);
-        
-        const NewUser = await userModel.create({username,email,password:hashedPassword});
-        const token = jwt.sign({email:NewUser.email,password:NewUser.password},"secretkey");
-            res.cookie("token",token);
-            res.redirect("/home");
-        
-
-})
-app.get("/login",function(req,res){
-    res.render("login");
-})
-app.post("/loginr", async function(req,res) {
-
-    const {email,password} = req.body;
-    const user = await userModel.findOne({email});
-    if(!user) {
-        res.status(401).send("Invalid email");
-    }
-    bcrypt.compare(password,user.password,function(err,result){
-        if(result){
-            const token = jwt.sign({email:user.email,password:user.password},"secretkey");
-            res.cookie("token",token);
-            res.redirect("/home");
-        }
-        else{
-            res.send("invalid pass");
-        }
-    });
+    let newuser = await userModel.find();
+    res.send(newuser);
+});
+app.get("/readpost", async function(req,res){
     
-})
-app.get("/cookiecheck",function(req,res){
-    const token = req.cookies.token;
-    res.send(`cookie is ${token}`);
-})
-app.get("/logout",function(req,res){
-    res.cookie("token","");
-    res.send("loggedout")
-})
+    let newuser = await postModel.find();
+    res.send(newuser);
+});
 
 
-
-
-
-
-
-app.listen(3000);
