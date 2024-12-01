@@ -1,18 +1,18 @@
 const mongoose = require("mongoose");
 
-
-const postschema = mongoose.Schema({
-    postdata:String,
-    
+const postSchema = mongoose.Schema({
     user:{
         type:mongoose.Schema.Types.ObjectId,
         ref:"user"
     },
-    date: {
+    content:String,
+    date:{
         type:Date,
         default:Date.now
+    },
+    likes:{
+        type:mongoose.Schema.Types.ObjectId,
+        ref:"user"
     }
-   
 })
-
-module.exports = mongoose.model("postModel",postschema);
+module.exports = mongoose.model("post",postSchema);

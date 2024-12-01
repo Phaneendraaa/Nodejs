@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body style="font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;">
+    <h1>Hello, <%= user.email %></h1>
+    
+    <form action="/createPost" method="post" style="display: flex;flex-direction:column;">
+        <textarea name="content" id="" placeholder="Whats on your mind?" style="width:40%;margin-left:100px;"></textarea>
+        <input type="submit" style="width:10%;margin-top:5px;background-color:blueviolet;color:white;cursor:pointer;margin-left:100px;">
+    </form>
+    <div>
+        <% user.posts.forEach(function(eachPost){ %>
+        <div style="background-color: aquamarine;width:30%;padding:5px;margin:10px;border-radius:15px;padding:10px;">
+            <p style="color:blue;">@<%= user.username %></p>
+            <p style="padding-left: 10px;"><%= eachPost.content %></p>
+            <p style="margin-top: 5px;color:red;">4 Likes</p>
+            <a style="font-size: 20px;cursor:pointer;padding-left:5px;padding-top:1px;" href="/liked/<%= user._id %>">&#10084;</a> 
+            <a href="/delete/<%= eachPost._id %>">Delete</a>
+        </div>
+        <% }); %>
+    </div>
+</body>
+</html>

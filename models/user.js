@@ -1,14 +1,11 @@
 const mongoose = require("mongoose");
-mongoose.connect("mongodb://localhost:27017/dataassociationprac");
 
-const userschema = mongoose.Schema({
+mongoose.connect("mongodb://localhost:27017/postingapp");
+
+const userSchema = mongoose.Schema({
     username:String,
     email:String,
-    posts:[{
-        type:mongoose.Schema.Types.ObjectId,
-        ref:"post",
-       
-    }]
+    password:String,
+    posts:[{type:mongoose.Schema.Types.ObjectId,ref:"post"}]
 })
-
-module.exports = mongoose.model("userModel",userschema);
+module.exports = mongoose.model("user",userSchema);
